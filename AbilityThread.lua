@@ -1,0 +1,13 @@
+function main()
+	if Bot.IS_PLAYING then
+		if Bot:FIND_IMAGE("event_back.bmp") then --IF TRUE WE ARE IN AN EVENT(BATTLE, REPLAY, DRAGON, ETC)
+			Bot:FIND_CLICK_IMAGE("1xspeed.bmp") --CLICK 2xSPEED
+			Bot:FIND_CLICK_IMAGE("tongue_chest.bmp") --CLICK CHESTS IF FOUND
+			--SPAM ABILITIES START
+			Bot:FIND_CLICK_IMAGE_WITH_TOL("ability.bmp", 25, 160, 140, 190, 270) --CLICK BLUE BAR
+			Bot:WAIT(10) -- WAIT
+			Bot:CLICK_XY(733, 453) -- CLICK HERE SO WIZARDS DON'T BREAK US
+			--SPAM ABILITIES END
+		end
+	end
+end
