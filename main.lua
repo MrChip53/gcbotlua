@@ -103,7 +103,7 @@ function start()
 	Bot.IS_PLAYING = true -- Not required, starts bot in "playing" state; Default is false
 	--TODO Detect when platform is loaded
 	Bot:BOOT_PLATFORM() --BOOT PLATFORM(BLUESTACKS 2)
-	Bot:WAIT(20*1000)
+	Bot:WAIT(10*1000) --Wait 10sec for android to load
 	--TODO Check adb has connected
 	Bot:CONNECT_ADB() --CONNECT ADB
 	Bot:START_APP("com.raongames.growcastle") --START APP
