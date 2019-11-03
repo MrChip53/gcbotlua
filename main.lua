@@ -65,6 +65,8 @@ RunHellButton = 0
 SpamAbilityButton = 0
 AdButton = 0
 
+bRunWaves = true
+
 EAST = 1
 WEST = 2
 NORTH = 1
@@ -132,7 +134,6 @@ end
 function loop()
 	NextEvent = Bot:PROCESS_NEXT_UI_EVENT()
 	if NextEvent == GeneralButton then
-		
 		if not GeneralBool then
 			drawMenu()
 			drawGeneral()
@@ -149,6 +150,15 @@ function loop()
 			ConfigBool = true
 			Bot:UPDATE_GUI()
 			Bot:TOGGLE_CONTROL(ConfigButton)
+			if bRunWaves then
+				Bot:TOGGLE_CONTROL(RunWavesButton)
+			end
+		end
+	elseif NextEvent == RunWavesButton then
+		if bRunWaves then
+			bRunWaves = false
+		else
+			bRunWaves = true
 		end
 	end
 
@@ -176,11 +186,13 @@ function loop()
 				end
 				Bot:WAIT(1000)
 			elseif Events[randEvent].Event == Events.BATTLE then
-				Bot:PRINT(Bot:GET_GUI_WINDOW(), "Running next wave\n", Bot.CONSOLE)
-				Bot:WAIT_CLICK_IMAGE_WITH_TIMEOUT("battle_btn.bmp", 5) --START BATTLE
-				WavesCleared = WavesCleared + 1 --TODO Check if victory then add 1
-				Bot:SET_CONTROL_TEXT(WavesLabel, WavesReplayed.." waves replayed; "..WavesCleared.." waves cleared.")
-				Bot:WAIT(1000)
+				if bRunWaves then
+					Bot:PRINT(Bot:GET_GUI_WINDOW(), "Running next wave\n", Bot.CONSOLE)
+					Bot:WAIT_CLICK_IMAGE_WITH_TIMEOUT("battle_btn.bmp", 5) --START BATTLE
+					WavesCleared = WavesCleared + 1 --TODO Check if victory then add 1
+					Bot:SET_CONTROL_TEXT(WavesLabel, WavesReplayed.." waves replayed; "..WavesCleared.." waves cleared.")
+					Bot:WAIT(1000)
+				end
 			elseif Events[randEvent].Event == Events.DRAGON then
 				Bot:PRINT(Bot:GET_GUI_WINDOW(), "Fighting dragon\n", Bot.CONSOLE)
 				if(Bot:WAIT_CLICK_IMAGE_WITH_TIMEOUT("dragon_shrine.bmp", 5)) then --START DRAGON
