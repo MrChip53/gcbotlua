@@ -25,6 +25,12 @@ Events = {
 	DRAGON = "Dragon"
 }
 
+--Stats
+DragonsFought = 0
+WavesReplayed = 0
+WavesCleared = 0
+
+--Tabs
 GeneralButton = 0
 GeneralBool = false
 ConfigButton = 0
@@ -35,6 +41,8 @@ CupsLabel = 0
 WavesLabel = 0
 DragonLabel = 0
 GoldLabel = 0
+
+lastRan = 0
 
 --Config
 DragonsButton = 0
@@ -74,7 +82,7 @@ CupsUsed = {
 }
 
 Speed = 1 --1 = 1x, 2 = 2x. If 2x do not search
-LostTol = 30 --Tolerance for search of lost image
+LostTol = 5 --Tolerance for search of lost image
 
 --Returns name of script
 function getName()
@@ -88,11 +96,14 @@ end
 
 --Script init function
 function start()
+	--[[]]
+
 	math.randomseed(Bot:GET_TIME())
 	Bot.IS_DEBUG = false -- Set debug messages to true or false; Default is false
 	Bot.IS_PLAYING = true -- Not required, starts bot in "playing" state; Default is false
 	--TODO Detect when platform is loaded
-	Bot:BOOT_PLATFORM(Platforms.PLATFORM_BLUESTACKS2) --BOOT PLATFORM(BLUESTACKS 2)
+	Bot:BOOT_PLATFORM() --BOOT PLATFORM(BLUESTACKS 2)
+	Bot:WAIT(20*1000)
 	--TODO Check adb has connected
 	Bot:CONNECT_ADB() --CONNECT ADB
 	Bot:START_APP("com.raongames.growcastle") --START APP
@@ -104,14 +115,18 @@ function start()
 	drawGeneral()
 	Bot:UPDATE_GUI()
 	Bot:TOGGLE_CONTROL(GeneralButton)
+	
+	Bot:SET_CONTROL_TEXT(CupsLabel, "Cup Stats will go here.")
+	Bot:SET_CONTROL_TEXT(WavesLabel, "Wave Stats will go here.")
+	Bot:SET_CONTROL_TEXT(GoldLabel, "Gold Stats will go here.")
+	Bot:SET_CONTROL_TEXT(DragonLabel, "Dragon Stats will go here.")
 end
 
 --Script main loop
 function loop()
 	NextEvent = Bot:PROCESS_NEXT_UI_EVENT()
 	if NextEvent == GeneralButton then
-		local file = "snap.bmp"
-		Misc:CAPTURE_SCREEN(Bot:GET_WINDOW(), file)
+		
 		if not GeneralBool then
 			drawMenu()
 			drawGeneral()
@@ -133,8 +148,14 @@ function loop()
 
 	if Bot.IS_PLAYING then
 		if Bot:FIND_IMAGE("replay.bmp") then --IF TRUE WE ARE ON MAIN MENU(CASTLE SCREEN)
-
-			--Bot:SET_CONTROL_TEXT(CupsLabel, "Cups Stats will go here.")
+			local thisTime = Bot:GET_TIME()
+			--[[Bot:PRINT(Bot:GET_GUI_WINDOW(), thisTime.." - "..lastRan.."\n", Bot.CONSOLE)
+			if thisTime - lastRan < 7 then
+				-Bot:PRINT(Bot:GET_GUI_WINDOW(), "Running too fast... did ADB fail? Restarting ADB...\n", Bot.CONSOLE)
+				Bot:RESTART_ADB()
+				Bot:WAIT(10000);
+			end
+			lastRan = thisTime]]
 
 			Bot:WAIT(100)
 			local randEvent = math.random(1, Events.NumOfEvents) -- RANDOMLY PICK NEXT EVENT
@@ -143,34 +164,30 @@ function loop()
 				if Bot:WAIT_CLICK_IMAGE_WITH_TIMEOUT("replay.bmp", 5) then --START REPLAY
 					Bot:WAIT(25)
 					Bot:WAIT_CLICK_IMAGE_WITH_TIMEOUT("100_replay.bmp", 5) --WAIT FOR 100% TO SHOW AND CLICK
-					Bot:PRINT(Bot:GET_GUI_WINDOW(), "Replaying last wave\n", Bot.CONSOLE)
+					Bot:PRINT(Bot:GET_GUI_WINDOW(), "Replaying last wave.\n", Bot.CONSOLE)
+					WavesReplayed = WavesReplayed + 1
+					Bot:SET_CONTROL_TEXT(WavesLabel, WavesReplayed.." waves replayed; "..WavesCleared.." waves cleared.")
 				end
-
-				--Captures HDC and turns cups red
-				--TODO
-				--Find diamond cup
-				--[[
-				for i=0,50
-				do
-
-				end
-				]]
 				Bot:WAIT(1000)
 			elseif Events[randEvent].Event == Events.BATTLE then
 				Bot:PRINT(Bot:GET_GUI_WINDOW(), "Running next wave\n", Bot.CONSOLE)
 				Bot:WAIT_CLICK_IMAGE_WITH_TIMEOUT("battle_btn.bmp", 5) --START BATTLE
+				WavesCleared = WavesCleared + 1 --TODO Check if victory then add 1
+				Bot:SET_CONTROL_TEXT(WavesLabel, WavesReplayed.." waves replayed; "..WavesCleared.." waves cleared.")
 				Bot:WAIT(1000)
 			elseif Events[randEvent].Event == Events.DRAGON then
 				Bot:PRINT(Bot:GET_GUI_WINDOW(), "Fighting dragon\n", Bot.CONSOLE)
 				if(Bot:WAIT_CLICK_IMAGE_WITH_TIMEOUT("dragon_shrine.bmp", 5)) then --START DRAGON
 					if(Bot:WAIT_CLICK_IMAGE_WITH_TIMEOUT("black_dragon.bmp", 5)) then
 						Bot:WAIT_CLICK_IMAGE_WITH_TIMEOUT("dragon_battle.bmp", 5)
+						DragonsFought = DragonsFought + 1
+						Bot:SET_CONTROL_TEXT(DragonLabel, DragonsFought.." dragons fought.")
 					end
 				end
 				Bot:WAIT(1000)
 			end
 		else
-			if Bot:FIND_IMAGE("event_back.bmp") then --IF TRUE WE ARE IN AN EVENT(BATTLE, REPLAY, DRAGON, ETC)
+			if Bot:FIND_IMAGE("event_back.bmp") or Bot:FIND_IMAGE("2x.bmp") then --IF TRUE WE ARE IN AN EVENT(BATTLE, REPLAY, DRAGON, ETC)
 				--Running Event/Wave/Dragon
 			elseif Bot:FIND_IMAGE("mat2_btn.bmp") then
 				local found, x, y = Bot:FIND_IMAGE_WITH_XY("mat2_btn.bmp", Bot.DEFAULT_TOLERANCE)
@@ -179,63 +196,73 @@ function loop()
 					Bot:CLICK_XY(x, y)
 				end
 			elseif Bot:FIND_IMAGE("start.bmp") and not Bot:FIND_IMAGE("left_time.bmp") then
+				Bot:START_RECORD()
+				Bot:WAIT(1000) --Wait for recording to start
 				Bot:FIND_CLICK_IMAGE("start.bmp")
-				local diamondCup = -1
-				for i=0,40
-				do
-					local file = "snap"..tostring(i)..".bmp"
-					Misc:CAPTURE_SCREEN(Bot:GET_WINDOW(), file)
-					Bot:WAIT(30)
-				end
-				local i2 = 0
-				for i=0,40
-				do
-					local file = "snap"..tostring(i)..".bmp"
-					local f, xx, yy = Bot:FIND_IMAGE_IN_IMAGE(file, "ab_d.bmp")
-					local f2, xx2, yy2 = Bot:FIND_IMAGE_IN_IMAGE(file, "start.bmp")
-					if f then
-						local found, x, y = Bot:FIND_IMAGE_IN_IMAGE(file, "ab_d.bmp")
-						MsgBox(tostring(x).."-"..tostring(y))
-						if x < 250 then
-							diamondCup = 0
-						elseif x < 350 then
-							diaomndCup = 1
-						elseif x < 450 then
-							diaomndCup = 2
-						elseif x < 550 then
-							diaomndCup = 3
-						elseif x < 650 then
-							diaomndCup = 4
-						end
-						--Get cup diamond is under
-					elseif not f2 then
-						local imgHDC = Misc:LOAD_IMAGE(file, true, 130, 290, 530, 320)
-						Misc:REPLACE_COLOR_WITH_TOL(imgHDC, Misc:GET_COLOR(180, 158, 121), Misc:GET_COLOR(255, 0, 0), 30)
-						Misc:REPLACE_COLOR_WITH_TOL(imgHDC, Misc:GET_COLOR(189, 165, 127), Misc:GET_COLOR(255, 0, 0), 30)
-						Misc:REPLACE_COLOR_WITH_TOL(imgHDC, Misc:GET_COLOR(165, 144, 111), Misc:GET_COLOR(255, 0, 0), 30)
-						Misc:REPLACE_COLOR_WITH_TOL(imgHDC, Misc:GET_COLOR(165, 144, 111), Misc:GET_COLOR(255, 0, 0), 30)
-						Misc:REPLACE_ALL_COLORS_EXCEPT(imgHDC, Misc:GET_COLOR(255, 0, 0), Misc:GET_COLOR(0, 0, 0))
+				Bot:WAIT(2200) --Wait for cups to move
+				Bot:STOP_RECORD()
+				
+				--Solve
+				OpenCV:OPEN_VIDEO("run1.mp4")
 
-						Misc:COPY_HDC_TO_SCREEN(imgHDC)
-						--Save Image as snap#_edit.bmp
-						local newFile = "snap"..tostring(i2).."_edit"
-						Misc:SAVE_HDC(imgHDC, newFile)
-						Misc:DELETE_HDC(imgHDC)
-						i2 = i2 + 1
-						Bot:WAIT(500)
+				if OpenCV:IS_VIDEO_OPEN() then
+							
+					--Find Diamond
+					OpenCV:CAPTURE_NEXT_FRAME()
+					local dfound, dx, dy = Bot:FIND_IMAGE_IN_IMAGE("frame.bmp", "ab_d.bmp")
+					while not dfound do
+						OpenCV:CAPTURE_NEXT_FRAME()
+						dfound, dx, dy = Bot:FIND_IMAGE_IN_IMAGE("frame.bmp", "ab_d.bmp")
 					end
+							
+					--Find Cups
+					local boxes = OpenCV:MULTI_TEMPLATE_MATCH("cup.bmp", 5, 0.8)
+							
+					local numEntries, boxTable = OpenCV:RECT_ARRAY_TO_TABLE(boxes)
+							
+					local closestBox = -1
+					local closestDist = -1
+							
+					for i = 1,numEntries,1
+					do 
+						local xval = (boxTable[i]["x"] - dx)^2
+						
+						local yval = (boxTable[i]["y"] - dy)^2
+								
+						local dist = math.sqrt(xval + yval)
+								
+						if closestDist == -1 or closestDist > dist then
+							closestDist = dist
+							closestBox = i
+						end
+								
+					end
+							
+							--Track cups
+					local multiTracker = OpenCV:RUN_MULTI_TRACKER(boxes)
+					OpenCV:CLOSE_VIDEO()		
+					
+					--[[
+						TODO make sure cup location is where a cup should be
+							incase MultiTracker lost track of cups; if cup is lost
+							pick random cup
+					]]
+					
+					Bot:CLICK_XY(multiTracker[closestBox]["x"], multiTracker[closestBox]["y"])
 				end
-				--Find diampnd cup function
-				--Bot:FIND_DIAMOND(0, 39, diamondCup)
+				
 			else
 
 				--I AM LOST
-				--[[if Bot:FIND_CLICK_IMAGE_WITH_TOL("", LostTol)
-					LostTol = 30;
-					Bot:WAIT(50);
+				local xf, xx, xy = Bot:FIND_IMAGE_WITH_XY("x1.bmp", LostTol)
+				if xf then
+					LostTol = 5
+					Bot:CLICK_XY(xx, xy)
+					Bot:PRINT(Bot:GET_GUI_WINDOW(), "Cicked X\n", Bot.CONSOLE)
+					Bot:WAIT(50)
 				else
-					LostTol++;
-				end]]
+					LostTol = LostTol + 1
+				end
 			end
 		end
 	end
