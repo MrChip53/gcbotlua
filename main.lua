@@ -215,7 +215,7 @@ function loop()
 				Bot:PRINT(Bot:GET_GUI_WINDOW(), "Fighting dragon\n", Bot.CONSOLE)
 				if(Bot:WAIT_CLICK_IMAGE_WITH_TIMEOUT("dragon_shrine.bmp", 5)) then --START DRAGON
 					local randDragon = math.random(0, table.getn(Dragons) - 1)
-					if(Bot:WAIT_CLICK_IMAGE_WITH_TIMEOUT("dragon_"..randDragon..".bmp", 5)) then
+					if(Bot:WAIT_CLICK_IMAGE_WITH_TIMEOUT("dragon_"..Dragons[randDragon]..".bmp", 5)) then
 						local dTol = 5
 						local found, x, y = Bot:FIND_IMAGE_WITH_XY("dragon_battle.bmp", dTol)
 						while not found and dTol < 255 do
