@@ -31,6 +31,14 @@ Events = {
 	DRAGON = "Dragon"
 }
 
+Dragons = {}
+GreenDragon = 0
+BlackDragon = 1
+RedDragon = 2
+SinDragon = 3
+LegendDragon = 4
+
+
 --Stats
 DragonsFought = 0
 WavesReplayed = 0
@@ -128,6 +136,10 @@ function start()
 	Bot:SET_CONTROL_TEXT(WavesLabel, "Wave Stats will go here.")
 	Bot:SET_CONTROL_TEXT(GoldLabel, "Gold Stats will go here.")
 	Bot:SET_CONTROL_TEXT(DragonLabel, "Dragon Stats will go here.")
+	
+	table.insert(Dragons, GreenDragon)
+	table.insert(Dragons, BlackDragon)
+	table.insert(Dragons, RedDragon)
 end
 
 --Script main loop
@@ -164,12 +176,18 @@ function loop()
 
 	if Bot.IS_PLAYING then
 		if Bot:FIND_IMAGE("replay.bmp") then --IF TRUE WE ARE ON MAIN MENU(CASTLE SCREEN)
-			local thisTime = Bot:GET_TIME()
-			--[[Bot:PRINT(Bot:GET_GUI_WINDOW(), thisTime.." - "..lastRan.."\n", Bot.CONSOLE)
+			--[[local thisTime = Bot:GET_TIME()
 			if thisTime - lastRan < 7 then
-				-Bot:PRINT(Bot:GET_GUI_WINDOW(), "Running too fast... did ADB fail? Restarting ADB...\n", Bot.CONSOLE)
-				Bot:RESTART_ADB()
-				Bot:WAIT(10000);
+				Bot.IS_PLAYING = false
+				Bot:WAIT(2*1000)
+				Bot:PRINT(Bot:GET_GUI_WINDOW(), "Running too fast... did ADB/BlueStacks fail? Restarting android...\n", Bot.CONSOLE)
+				Bot:KILL_PLATFORM();
+				Bot:WAIT(3*1000);
+				Bot:BOOT_PLATFORM() --BOOT PLATFORM(BLUESTACKS 2)
+				Bot:WAIT(10*1000) --Wait 10sec for android to load
+				Bot:CONNECT_ADB() --CONNECT ADB
+				Bot:START_APP("com.raongames.growcastle") --START APP
+				Bot.IS_PLAYING = true
 			end
 			lastRan = thisTime]]
 
@@ -196,8 +214,17 @@ function loop()
 			elseif Events[randEvent].Event == Events.DRAGON then
 				Bot:PRINT(Bot:GET_GUI_WINDOW(), "Fighting dragon\n", Bot.CONSOLE)
 				if(Bot:WAIT_CLICK_IMAGE_WITH_TIMEOUT("dragon_shrine.bmp", 5)) then --START DRAGON
-					if(Bot:WAIT_CLICK_IMAGE_WITH_TIMEOUT("black_dragon.bmp", 5)) then
-						Bot:WAIT_CLICK_IMAGE_WITH_TIMEOUT("dragon_battle.bmp", 5)
+					local randDragon = math.random(0, table.getn(Dragons) - 1)
+					if(Bot:WAIT_CLICK_IMAGE_WITH_TIMEOUT("dragon_"..randDragon..".bmp", 5)) then
+						local dTol = 5
+						local found, x, y = Bot:FIND_IMAGE_WITH_XY("dragon_battle.bmp", dTol)
+						while not found and dTol < 255 do
+							dTol = dTol + 1
+							found, x, y = Bot:FIND_IMAGE_WITH_XY("dragon_battle.bmp", dTol)
+						end
+						if found then
+							Bot:CLICK_XY(x, y)
+						end
 						DragonsFought = DragonsFought + 1
 						Bot:SET_CONTROL_TEXT(DragonLabel, DragonsFought.." dragons fought.")
 					end
@@ -271,7 +298,7 @@ function loop()
 				
 			else
 
-				--I AM LOST
+				--I AM LOST; this code needs work, doesn't always find X button
 				local xf, xx, xy = Bot:FIND_IMAGE_WITH_XY("x1.bmp", LostTol)
 				if xf then
 					LostTol = 5
