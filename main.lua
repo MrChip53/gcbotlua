@@ -1,5 +1,3 @@
-require("scripts.freebrewlib.string") --REQUIRE STRING FUNCTIONS
-
 if IS_LOCAL then
 	require("scripts.local.gcbotlua.functions")
 	require("scripts.local.gcbotlua.gui")
