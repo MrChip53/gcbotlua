@@ -30,7 +30,6 @@ function main()
 			Gold = Misc:READ_IMAGE_TEXT("gold", "gc")
 			Gold = Gold:gsub("%\n", "")
 			Gold = Gold:gsub("%.", ",")
-			Bot:PRINT(Bot:GET_GUI_WINDOW(), Gold, Bot.CONSOLE)
 			Bot:SET_CONTROL_TEXT(70001, "Gold: " .. Gold)
 			Bot:WAIT(5000)
 		end

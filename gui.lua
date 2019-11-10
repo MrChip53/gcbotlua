@@ -25,3 +25,25 @@ function drawConfig()
 	SpamAbilityButton = Bot:CREATE_CONTROL(Control.CHECKBOX, 185, 80, 185, 35, "Spam Abilities")
 	AdButton = Bot:CREATE_CONTROL(Control.CHECKBOX, 185, 105, 185, 35, "Watch Ads")
 end
+
+function updateToggles()
+	Bot:TOGGLE_CONTROL(GeneralButton, GeneralBool)
+	Bot:TOGGLE_CONTROL(ConfigButton, ConfigBool)
+	if ConfigBool then
+		Bot:TOGGLE_CONTROL(RunWavesButton, bRunWaves)
+		Bot:TOGGLE_CONTROL(DragonsButton, bRunDragons)
+		Bot:TOGGLE_CONTROL(ReplayWavesButton, bReplayWaves)
+		Bot:TOGGLE_CONTROL(GreenButton, bGreenDragon)
+		Bot:TOGGLE_CONTROL(RedButton, bRedDragon)
+		Bot:TOGGLE_CONTROL(BlackButton, bBlackDragon)
+		Bot:TOGGLE_CONTROL(SpecialButton, bSpecialDragon)
+		Bot:TOGGLE_CONTROL(LegendButton, bLegendDragon)
+		Bot:TOGGLE_CONTROL(SkipWavesButton, bSkipWaves)
+		Bot:TOGGLE_CONTROL(SpamAbilityButton, bSpamAbilities)
+		Bot:TOGGLE_CONTROL(RunHellButton, bRunHell)
+		Bot:TOGGLE_CONTROL(RunSeasonButton, bRunSeason)
+		Bot:TOGGLE_CONTROL(AdButton, bWatchAds)
+	elseif GeneralBool then
+		--Nothing to update
+	end
+end
