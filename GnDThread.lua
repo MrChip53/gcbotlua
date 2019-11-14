@@ -25,13 +25,13 @@ function main()
 			Misc:REPLACE_COLOR(hdc, Misc:GET_COLOR(194, 145, 31), Misc:GET_COLOR(255, 0, 0))
 			Misc:REPLACE_COLOR(hdc, Misc:GET_COLOR(175, 132, 33), Misc:GET_COLOR(255, 0, 0))
 			Misc:REPLACE_ALL_COLORS_EXCEPT(hdc, Misc:GET_COLOR(255, 0, 0), Misc:GET_COLOR(0, 0, 0))
-			Misc:SAVE_HDC(hdc, "gold")
-			Bot:WAIT(25)
-			Gold = Misc:READ_IMAGE_TEXT("gold", "gc")
+			--Misc:SAVE_HDC(hdc, "gold")
+			--Bot:WAIT(25)
+			Gold = Misc:READ_HDC_TEXT(hdc, "gc")
 			Gold = Gold:gsub("%\n", "")
 			Gold = Gold:gsub("%.", ",")
 			Bot:SET_CONTROL_TEXT(70001, "Gold: " .. Gold)
-			Bot:WAIT(5000)
+			Bot:WAIT(100)
 		end
 	end
 end

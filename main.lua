@@ -163,6 +163,9 @@ function start()
 	Bot.IS_DEBUG = false -- Set debug messages to true or false; Default is false
 	Bot.IS_PLAYING = true -- Not required, starts bot in "playing" state; Default is false
 	--TODO Detect when platform is loaded
+	Bot:KILL_PLATFORM();
+	Bot:WAIT(500);
+	
 	Bot:BOOT_PLATFORM() --BOOT PLATFORM(BLUESTACKS 2)
 	Bot:WAIT(10*1000) --Wait 10sec for android to load
 	--TODO Check adb has connected
