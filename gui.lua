@@ -3,6 +3,7 @@ function drawGeneral()
 	DragonLabel = Bot:CREATE_CONTROL(Control.LABEL, 0, 46, 450, 20, "BLANK")
 	GoldLabel = Bot:CREATE_CONTROL_FIXED_ID(1, Control.LABEL, 0, 69, 450, 20, "BLANK")
 	CupsLabel = Bot:CREATE_CONTROL(Control.LABEL, 0, 92, 450, 20, "BLANK")
+	ScreenBtn = Bot:CREATE_CONTROL(Control.BUTTON, 0, 115, 450, 20, "Take Screenshot")
 end
 
 function drawMenu()

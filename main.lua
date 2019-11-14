@@ -48,6 +48,7 @@ CupsLabel = 0
 WavesLabel = 0
 DragonLabel = 0
 GoldLabel = 0
+ScreenBtn = 0
 
 lastRan = 0
 
@@ -244,6 +245,9 @@ function loop()
 	elseif NextEvent == DragonsButton then
 		bRunDragons = not bRunDragons
 		buildEventTable()
+	elseif NextEvent == ScreenBtn then
+		Misc:CAPTURE_SCREEN(Bot:GET_WINDOW(), "Capture.bmp")
+		Bot:PRINT(Bot:GET_GUI_WINDOW(), "Screenshot saved to ./Captures/Capture.bmp\n", Bot.CONSOLE)
 	end
 	updateToggles()
 
@@ -336,15 +340,19 @@ function loop()
 				Bot:FIND_CLICK_IMAGE("start.bmp")
 				Bot:WAIT(1800) --Wait for cups to move
 				Bot:STOP_RECORD()
+				Bot:WAIT(1000) --Wait for recording to stop
 				
 				--Solve
 				OpenCV:OPEN_VIDEO("run1.mp4")
 
 				if OpenCV:IS_VIDEO_OPEN() then
 							
-					--Find Diamond
+					--Find Diamond	
 					local dfound, dx, dy
-					if OpenCV:CAPTURE_NEXT_FRAME() then
+					repeat
+						dfound, dx, dy = OpenCV:TEMPLATE_MATCH("ab_d.bmp")
+					until(dfound == true)
+					--[[if OpenCV:CAPTURE_NEXT_FRAME() then
 						dfound, dx, dy = Bot:FIND_IMAGE_IN_IMAGE("frame.bmp", "ab_d.bmp")
 						while not dfound do
 							if OpenCV:CAPTURE_NEXT_FRAME() then
@@ -353,7 +361,7 @@ function loop()
 								break
 							end
 						end
-					end
+					end]]
 							
 					--Find Cups
 					local dCup = {["set"] = false, ["x"] = 0, ["y"] = 0}
@@ -390,7 +398,7 @@ function loop()
 								dCup["x"] = boxTable[closestBox]["x"]
 								dCup["y"] = boxTable[closestBox]["y"]
 							else
-								MsgBox("Error findind diamond cup")
+								MsgBox("Error finding diamond cup")
 							end
 						else
 							--Track movement of cup
@@ -416,7 +424,7 @@ function loop()
 								dCup["x"] = boxTable[closestBox]["x"]
 								dCup["y"] = boxTable[closestBox]["y"]
 							else
-								MsgBox("Error findind diamond cup")
+								MsgBox("Error finding diamond cup")
 							end
 							
 						end
