@@ -253,6 +253,7 @@ function loop()
 		Bot:PRINT(Bot:GET_GUI_WINDOW(), "Screenshot saved to ./Captures/Capture.bmp\n", Bot.CONSOLE)
 	end
 	updateToggles()
+	Bot:SET_STATUS_MSG("Running for "..Bot:GET_RUN_TIME().."...")
 
 	if Bot.IS_PLAYING then
 		if Bot:FIND_IMAGE("replay.bmp") then --IF TRUE WE ARE ON MAIN MENU(CASTLE SCREEN)
