@@ -42,6 +42,8 @@ GeneralButton = 0
 GeneralBool = false
 ConfigButton = 0
 ConfigBool = false
+CastleButton = 0
+CastleBool = false
 
 --General
 CupsLabel = 0
@@ -66,6 +68,24 @@ RunSeasonButton = 0
 RunHellButton = 0
 SpamAbilityButton = 0
 AdButton = 0
+
+--Castle
+ScanCastleBtn = 0
+TopCastleLabel = 0
+MiddleCastleLabel = 0
+BottomCastleLabel = 0
+BaseCastleLabel = 0
+
+CastleBaseText = {"Frozen", "Lightning", "Poison", "Fire"}
+CastleText = {"Cannon", "Minigun", "Poison", "Lightning", "Ballista"}
+
+CastleBase = 0 --Frozen = 1; lightning = 2; poison = 3; fire = 4
+CastleTop = 0 --Cannon = 1; Minigun = 2; Poison = 3; Lightning = 4; Ballista = 5
+CastleMiddle = 0
+CastleBottom = 0
+
+bScanCastle = true
+bUpgradeCastle = false
 
 bRunWaves = true
 bReplayWaves = true
@@ -106,6 +126,30 @@ CupsUsed = {
 
 Speed = 1 --1 = 1x, 2 = 2x. If 2x do not search
 LostTol = 5 --Tolerance for search of lost image
+
+function upgradeCastle(castle)
+	local found, x, y = Bot:FIND_IMAGE_WITH_XY("castle_base_"..CastleBase..".bmp", Bot.DEFAULT_TOLERANCE)
+	if found then
+		Bot:CLICK_XY(x, y)
+		Bot:WAIT(100)
+		local found, x, y = Bot:FIND_IMAGE_WITH_XY("castle_"..castle..".bmp", Bot.DEFAULT_TOLERANCE)
+		if found then
+			Bot:CLICK_XY(x, y)
+			Bot:WAIT(100)
+			found, x, y = Bot:FIND_IMAGE_WITH_XY("castle_btn_"..castle..".bmp", Bot.DEFAULT_TOLERANCE)
+			if found then
+				Bot:CLICK_XY(x, y)
+				Bot:WAIT(100)
+				for i=1,60,1
+				do
+					found, x, y = Bot:FIND_IMAGE_WITH_XY("lvlup_castle.bmp", Bot.DEFAULT_TOLERANCE)
+					Bot:CLICK_XY(x, y)
+					Bot:WAIT(50)
+				end
+			end
+		end
+	end
+end
 
 function buildDragonTable()
 	Dragons = {}
@@ -197,6 +241,7 @@ function loop()
 			drawGeneral()
 			GeneralBool = true
 			ConfigBool = false
+			CastleBool = false
 			Bot:UPDATE_GUI()
 			updateToggles()
 			Bot:SET_CONTROL_TEXT(WavesLabel, WavesReplayed.." waves replayed; "..WavesCleared.." waves cleared.")
@@ -208,12 +253,26 @@ function loop()
 			drawConfig()
 			GeneralBool = false
 			ConfigBool = true
+			CastleBool = false
 			Bot:UPDATE_GUI()
 			updateToggles()
+		end
+	elseif NextEvent == CastleButton then
+		if not CastleBool then
+			drawMenu()
+			drawCastle()
+			GeneralBool = false
+			ConfigBool = false
+			CastleBool = true
+			Bot:UPDATE_GUI()
+			updateToggles()
+			updateCastleText()
 		end
 	elseif NextEvent == RunWavesButton then
 		bRunWaves = not bRunWaves
 		buildEventTable()
+	elseif NextEvent == ScanCastleBtn then
+		bScanCastle = true
 	elseif NextEvent == GreenButton then
 		bGreenDragon = not bGreenDragon
 		buildDragonTable()
@@ -254,9 +313,70 @@ function loop()
 	end
 	updateToggles()
 	Bot:SET_STATUS_MSG("Running for "..Bot:GET_RUN_TIME().."...")
-
+	
 	if Bot.IS_PLAYING then
 		if Bot:FIND_IMAGE("replay.bmp") then --IF TRUE WE ARE ON MAIN MENU(CASTLE SCREEN)
+			if bScanCastle then
+				--Scan base
+				for i=1,4,1
+				do
+					local found, x, y = Bot:FIND_IMAGE_WITH_XY("castle_base_"..i..".bmp", Bot.DEFAULT_TOLERANCE)
+					if found then
+						CastleBase = i
+						Bot:CLICK_XY(x, y)
+					end
+				end
+				Bot:WAIT(100)
+				--Scan other castle
+				for i=1,5,1
+				do
+					local found, x, y = Bot:FIND_IMAGE_WITH_XY("castle_"..i..".bmp", Bot.DEFAULT_TOLERANCE)
+					if found then
+						if y > 340 then --CastleBottom
+							CastleBottom = i
+						elseif y > 275 then --CastleMiddle
+							CastleMiddle = i
+						else --CastleTop
+							CastleTop = i
+						end
+					end
+				end
+				if CastleBool then
+					updateCastleText()
+				end
+				bScanCastle = false
+			end
+			local diamonds = Bot:GET_GLOBAL("DIAMOND")
+			if bUpgradeCastle then
+				if tonumber(diamonds) == 60 then
+					local randCastle = math.random(1, 4)
+					if randCastle == 1 then --upgrade base
+						local found, x, y = Bot:FIND_IMAGE_WITH_XY("castle_base_"..CastleBase..".bmp", Bot.DEFAULT_TOLERANCE)
+						if found then
+							Bot:CLICK_XY(x, y)
+							Bot:WAIT(25)
+							Bot:CLICK_XY(x, y)
+							found, x, y = Bot:FIND_IMAGE_WITH_XY("castle_base_btn_"..CastleBase..".bmp", Bot.DEFAULT_TOLERANCE)
+							if found then
+								Bot:CLICK_XY(x, y)
+								Bot:WAIT(100)
+								for i=1,60,1
+								do
+									found, x, y = Bot:FIND_IMAGE_WITH_XY("lvlup_castle.bmp", Bot.DEFAULT_TOLERANCE)
+									Bot:CLICK_XY(x, y)
+									Bot:WAIT(50)
+								end
+							end
+						end
+					elseif randCastle == 2 then --upgrade bottom
+						upgradeCastle(CastleBottom)
+					elseif randCastle == 3 then --upgrade middle
+						upgradeCastle(CastleMiddle)
+					elseif randCastle == 4 then --upgrade top
+						upgradeCastle(CastleTop)
+					end
+				end
+			end
 			local thisTime = Bot:GET_TIME()
 			--Bot:PRINT(Bot:GET_GUI_WINDOW(), thisTime.." - "..lastRan.."\n", Bot.CONSOLE)
 			if thisTime - lastRan < 7 then
@@ -325,8 +445,10 @@ function loop()
 							Bot:PRINT(Bot:GET_GUI_WINDOW(), "Enetering hell\n", Bot.CONSOLE)
 						end
 					end
+					Bot:WAIT(1000)
 				elseif Events[randEvent] == RunSeasonEvent then
 					Bot:PRINT(Bot:GET_GUI_WINDOW(), "Running season\n", Bot.CONSOLE)
+					Bot:WAIT(1000)
 				end
 			end
 		else
@@ -354,7 +476,7 @@ function loop()
 					--Find Diamond	
 					local dfound, dx, dy
 					repeat
-						dfound, dx, dy = OpenCV:TEMPLATE_MATCH("ab_d.bmp")
+						dfound, dx, dy = OpenCV:TEMPLATE_MATCH_VIDEO("ab_d.bmp")
 					until(dfound == true)
 					--[[if OpenCV:CAPTURE_NEXT_FRAME() then
 						dfound, dx, dy = Bot:FIND_IMAGE_IN_IMAGE("frame.bmp", "ab_d.bmp")
@@ -371,7 +493,7 @@ function loop()
 					local dCup = {["set"] = false, ["x"] = 0, ["y"] = 0}
 					
 					
-					local success, boxes = OpenCV:MULTI_TEMPLATE_MATCH("cup.bmp", 5, 0.8)
+					local success, boxes = OpenCV:MULTI_TEMPLATE_MATCH_VIDEO("cup.bmp", 5, 0.8)
 					repeat
 						local numEntries, boxTable = OpenCV:RECT_ARRAY_TO_TABLE(boxes)
 						
@@ -433,7 +555,7 @@ function loop()
 							
 						end
 						
-						success, boxes = OpenCV:MULTI_TEMPLATE_MATCH("cup.bmp", 5, 0.8)
+						success, boxes = OpenCV:MULTI_TEMPLATE_MATCH_VIDEO("cup.bmp", 5, 0.8)
 					until (success == false)
 					
 					--[[local numEntries, boxTable = OpenCV:RECT_ARRAY_TO_TABLE(boxes)
