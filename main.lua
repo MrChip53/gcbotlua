@@ -85,7 +85,7 @@ CastleMiddle = 0
 CastleBottom = 0
 
 bScanCastle = true
-bUpgradeCastle = false
+bUpgradeCastle = true
 
 bRunWaves = true
 bReplayWaves = true
@@ -128,26 +128,34 @@ Speed = 1 --1 = 1x, 2 = 2x. If 2x do not search
 LostTol = 5 --Tolerance for search of lost image
 
 function upgradeCastle(castle)
-	local found, x, y = Bot:FIND_IMAGE_WITH_XY("castle_base_"..CastleBase..".bmp", Bot.DEFAULT_TOLERANCE)
+	local found, x, y = OpenCV:TEMPLATE_MATCH(Bot:GET_WINDOW(), "castle_base_"..CastleBase..".bmp")
 	if found then
 		Bot:CLICK_XY(x, y)
-		Bot:WAIT(100)
-		local found, x, y = Bot:FIND_IMAGE_WITH_XY("castle_"..castle..".bmp", Bot.DEFAULT_TOLERANCE)
+		Bot:WAIT(500)
+		local found, x, y = OpenCV:TEMPLATE_MATCH(Bot:GET_WINDOW(), "castle_"..castle..".bmp")
 		if found then
 			Bot:CLICK_XY(x, y)
-			Bot:WAIT(100)
-			found, x, y = Bot:FIND_IMAGE_WITH_XY("castle_btn_"..castle..".bmp", Bot.DEFAULT_TOLERANCE)
+			Bot:WAIT(500)
+			found, x, y = OpenCV:TEMPLATE_MATCH(Bot:GET_WINDOW(), "castle_btn_"..castle..".bmp")
 			if found then
 				Bot:CLICK_XY(x, y)
-				Bot:WAIT(100)
-				for i=1,60,1
-				do
-					found, x, y = Bot:FIND_IMAGE_WITH_XY("lvlup_castle.bmp", Bot.DEFAULT_TOLERANCE)
-					Bot:CLICK_XY(x, y)
-					Bot:WAIT(50)
+				Bot:WAIT(500)
+				found, x, y = OpenCV:TEMPLATE_MATCH(Bot:GET_WINDOW(), "lvlup_castle.bmp")
+				if found then
+					for i=1,60,1
+					do
+						Bot:CLICK_XY(x, y)
+						Bot:WAIT(5)
+					end
 				end
+			else
+				Bot:PRINT(Bot:GET_GUI_WINDOW(), "Could not find castle part in menu!\n", Bot.CONSOLE)
 			end
+		else
+			Bot:PRINT(Bot:GET_GUI_WINDOW(), "Could not find castle part "..castle.."!\n", Bot.CONSOLE)
 		end
+	else
+		Bot:PRINT(Bot:GET_GUI_WINDOW(), "Could not find castle base!\n", Bot.CONSOLE)
 	end
 end
 
@@ -207,8 +215,8 @@ function start()
 	Bot.IS_DEBUG = false -- Set debug messages to true or false; Default is false
 	Bot.IS_PLAYING = true -- Not required, starts bot in "playing" state; Default is false
 	--TODO Detect when platform is loaded
-	Bot:KILL_PLATFORM();
-	Bot:WAIT(500);
+	--Bot:KILL_PLATFORM();
+	--Bot:WAIT(500);
 	
 	Bot:BOOT_PLATFORM() --BOOT PLATFORM(BLUESTACKS 2)
 	Bot:WAIT(10*1000) --Wait 10sec for android to load
@@ -317,7 +325,10 @@ function loop()
 	if Bot.IS_PLAYING then
 		if Bot:FIND_IMAGE("replay.bmp") then --IF TRUE WE ARE ON MAIN MENU(CASTLE SCREEN)
 			if bScanCastle then
+				Bot:PRINT(Bot:GET_GUI_WINDOW(), "Scanning castle\n", Bot.CONSOLE)
+				Bot:WAIT(200)
 				--Scan base
+				bScanCastle = false
 				for i=1,4,1
 				do
 					local found, x, y = Bot:FIND_IMAGE_WITH_XY("castle_base_"..i..".bmp", Bot.DEFAULT_TOLERANCE)
@@ -349,24 +360,30 @@ function loop()
 			local diamonds = Bot:GET_GLOBAL("DIAMOND")
 			if bUpgradeCastle then
 				if tonumber(diamonds) == 60 then
+					Bot:PRINT(Bot:GET_GUI_WINDOW(), "Upgrading castle. Diamonds: "..diamonds.."\n", Bot.CONSOLE)
+					Bot:WAIT(200)
 					local randCastle = math.random(1, 4)
 					if randCastle == 1 then --upgrade base
-						local found, x, y = Bot:FIND_IMAGE_WITH_XY("castle_base_"..CastleBase..".bmp", Bot.DEFAULT_TOLERANCE)
+						local found, x, y = OpenCV:TEMPLATE_MATCH(Bot:GET_WINDOW(), "castle_base_"..CastleBase..".bmp")
 						if found then
 							Bot:CLICK_XY(x, y)
-							Bot:WAIT(25)
+							Bot:WAIT(250)
 							Bot:CLICK_XY(x, y)
-							found, x, y = Bot:FIND_IMAGE_WITH_XY("castle_base_btn_"..CastleBase..".bmp", Bot.DEFAULT_TOLERANCE)
+							found, x, y = OpenCV:TEMPLATE_MATCH(Bot:GET_WINDOW(), "castle_base_btn_"..CastleBase..".bmp")
 							if found then
 								Bot:CLICK_XY(x, y)
-								Bot:WAIT(100)
+								Bot:WAIT(250)
+								found, x, y = OpenCV:TEMPLATE_MATCH(Bot:GET_WINDOW(), "lvlup_castle.bmp")
 								for i=1,60,1
 								do
-									found, x, y = Bot:FIND_IMAGE_WITH_XY("lvlup_castle.bmp", Bot.DEFAULT_TOLERANCE)
 									Bot:CLICK_XY(x, y)
-									Bot:WAIT(50)
+									Bot:WAIT(5)
 								end
+							else
+								Bot:PRINT(Bot:GET_GUI_WINDOW(), "Could not find castle base in menu!\n", Bot.CONSOLE)
 							end
+						else
+							Bot:PRINT(Bot:GET_GUI_WINDOW(), "Could not find castle base!\n", Bot.CONSOLE)
 						end
 					elseif randCastle == 2 then --upgrade bottom
 						upgradeCastle(CastleBottom)
@@ -375,6 +392,7 @@ function loop()
 					elseif randCastle == 4 then --upgrade top
 						upgradeCastle(CastleTop)
 					end
+					Bot:SET_GLOBAL("DIAMOND", "0")
 				end
 			end
 			local thisTime = Bot:GET_TIME()
@@ -602,14 +620,18 @@ function loop()
 
 				--I AM LOST; this code needs work, doesn't always find X button
 				local xf, xx, xy = Bot:FIND_IMAGE_WITH_XY("x1.bmp", LostTol)
+				repeat
+					LostTol = LostTol + 1
+					xf, xx, xy = Bot:FIND_IMAGE_WITH_XY("x1.bmp", LostTol)
+				until(xf == true or LostTol == 255)
 				if xf then
-					LostTol = 5
 					Bot:CLICK_XY(xx, xy)
-					Bot:PRINT(Bot:GET_GUI_WINDOW(), "Cicked X\n", Bot.CONSOLE)
+					Bot:PRINT(Bot:GET_GUI_WINDOW(), "Clicked X\n", Bot.CONSOLE)
 					Bot:WAIT(50)
 				else
-					LostTol = LostTol + 1
+					Bot:PRINT(Bot:GET_GUI_WINDOW(), "I'm Lost!\n", Bot.CONSOLE)
 				end
+				LostTol = 5
 			end
 		end
 	end
