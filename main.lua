@@ -619,6 +619,7 @@ function loop()
 			else
 
 				--I AM LOST; this code needs work, doesn't always find X button
+				lastRan = 0
 				local xf, xx, xy = Bot:FIND_IMAGE_WITH_XY("x1.bmp", LostTol)
 				repeat
 					LostTol = LostTol + 1
