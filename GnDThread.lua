@@ -49,7 +49,7 @@ function main()
 			Diamonds = Misc:READ_HDC_TEXT(hdc2, "gc")
 			Diamonds = Diamonds:gsub("%\n", "")
 			if tonumber(Diamonds) ~= nil then
-			   Bot:SET_GLOBAL("DIAMOND", Diamonds)
+			   Bot:SET_GLOBAL("DIAMOND", ""..tonumber(Diamonds))
 			end
 			Bot:SET_CONTROL_TEXT(70001, "Gold: " .. Gold .. " Diamonds: " .. Diamonds)
 			Bot:WAIT(100)

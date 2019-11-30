@@ -75,6 +75,10 @@ TopCastleLabel = 0
 MiddleCastleLabel = 0
 BottomCastleLabel = 0
 BaseCastleLabel = 0
+CastleTopLevels = 0
+CastleMiddleLevels = 0
+CastleBottomLevels = 0
+CastleBaseLevels = 0
 
 CastleBaseText = {"Frozen", "Lightning", "Poison", "Fire"}
 CastleText = {"Cannon", "Minigun", "Poison", "Lightning", "Ballista"}
@@ -147,6 +151,7 @@ function upgradeCastle(castle)
 						Bot:CLICK_XY(x, y)
 						Bot:WAIT(5)
 					end
+					return true
 				end
 			else
 				Bot:PRINT(Bot:GET_GUI_WINDOW(), "Could not find castle part in menu!\n", Bot.CONSOLE)
@@ -157,6 +162,7 @@ function upgradeCastle(castle)
 	else
 		Bot:PRINT(Bot:GET_GUI_WINDOW(), "Could not find castle base!\n", Bot.CONSOLE)
 	end
+	return false
 end
 
 function buildDragonTable()
@@ -320,10 +326,11 @@ function loop()
 		Bot:PRINT(Bot:GET_GUI_WINDOW(), "Screenshot saved to ./Captures/Capture.bmp\n", Bot.CONSOLE)
 	end
 	updateToggles()
-	Bot:SET_STATUS_MSG("Running for "..Bot:GET_RUN_TIME().."...")
+	Bot:SET_STATUS_MSG(0, "Running for "..Bot:GET_RUN_TIME().."...")
 	
 	if Bot.IS_PLAYING then
 		if Bot:FIND_IMAGE("replay.bmp") then --IF TRUE WE ARE ON MAIN MENU(CASTLE SCREEN)
+			Bot:SET_STATUS_MSG(1, "At castle...")
 			if bScanCastle then
 				Bot:PRINT(Bot:GET_GUI_WINDOW(), "Scanning castle\n", Bot.CONSOLE)
 				Bot:WAIT(200)
@@ -331,7 +338,7 @@ function loop()
 				bScanCastle = false
 				for i=1,4,1
 				do
-					local found, x, y = Bot:FIND_IMAGE_WITH_XY("castle_base_"..i..".bmp", Bot.DEFAULT_TOLERANCE)
+					local found, x, y = OpenCV:TEMPLATE_MATCH(Bot:GET_WINDOW(), "castle_base_"..i..".bmp")
 					if found then
 						CastleBase = i
 						Bot:CLICK_XY(x, y)
@@ -341,7 +348,7 @@ function loop()
 				--Scan other castle
 				for i=1,5,1
 				do
-					local found, x, y = Bot:FIND_IMAGE_WITH_XY("castle_"..i..".bmp", Bot.DEFAULT_TOLERANCE)
+					local found, x, y = OpenCV:TEMPLATE_MATCH(Bot:GET_WINDOW(), "castle_"..i..".bmp")
 					if found then
 						if y > 340 then --CastleBottom
 							CastleBottom = i
@@ -360,6 +367,7 @@ function loop()
 			local diamonds = Bot:GET_GLOBAL("DIAMOND")
 			if bUpgradeCastle then
 				if tonumber(diamonds) == 60 then
+					Bot:SET_STATUS_MSG(1, "Upgrading castle...")
 					Bot:PRINT(Bot:GET_GUI_WINDOW(), "Upgrading castle. Diamonds: "..diamonds.."\n", Bot.CONSOLE)
 					Bot:WAIT(200)
 					local randCastle = math.random(1, 4)
@@ -379,18 +387,37 @@ function loop()
 									Bot:CLICK_XY(x, y)
 									Bot:WAIT(5)
 								end
+								CastleBaseLevels = CastleBaseLevels + 60
+								if CastleBool then
+									updateCastleText()
+								end
 							else
-								Bot:PRINT(Bot:GET_GUI_WINDOW(), "Could not find castle base in menu!\n", Bot.CONSOLE)
+								Bot:PRINT(Bot:GET_GUI_WINDOW(), "Could not find castle base "..CastleBase.." in menu!\n", Bot.CONSOLE)
 							end
 						else
 							Bot:PRINT(Bot:GET_GUI_WINDOW(), "Could not find castle base!\n", Bot.CONSOLE)
 						end
 					elseif randCastle == 2 then --upgrade bottom
-						upgradeCastle(CastleBottom)
+						if upgradeCastle(CastleBottom) then
+							CastleBottomLevels = CastleBottomLevels + 60
+							if CastleBool then
+								updateCastleText()
+							end
+						end
 					elseif randCastle == 3 then --upgrade middle
-						upgradeCastle(CastleMiddle)
+						if upgradeCastle(CastleMiddle) then
+							CastleMiddleLevels = CastleMiddleLevels + 60
+							if CastleBool then
+								updateCastleText()
+							end
+						end
 					elseif randCastle == 4 then --upgrade top
-						upgradeCastle(CastleTop)
+						if upgradeCastle(CastleTop) then
+							CastleTopLevels = CastleTopLevels + 60
+							if CastleBool then
+								updateCastleText()
+							end
+						end
 					end
 					Bot:SET_GLOBAL("DIAMOND", "0")
 				end
@@ -398,6 +425,7 @@ function loop()
 			local thisTime = Bot:GET_TIME()
 			--Bot:PRINT(Bot:GET_GUI_WINDOW(), thisTime.." - "..lastRan.."\n", Bot.CONSOLE)
 			if thisTime - lastRan < 7 then
+				Bot:SET_STATUS_MSG(1, "Restarting android...")
 				Bot.IS_PLAYING = false
 				Bot:WAIT(2*1000)
 				Bot:PRINT(Bot:GET_GUI_WINDOW(), "Running too fast... did ADB/BlueStacks fail? Restarting android...\n", Bot.CONSOLE)
@@ -419,6 +447,7 @@ function loop()
 						--Bot:WAIT(25)
 						Bot:WAIT_CLICK_IMAGE_WITH_TIMEOUT("100_replay.bmp", 5) --WAIT FOR 100% TO SHOW AND CLICK
 						Bot:PRINT(Bot:GET_GUI_WINDOW(), "Replaying last wave.\n", Bot.CONSOLE)
+						Bot:SET_STATUS_MSG(1, "Replaying wave...")
 						WavesReplayed = WavesReplayed + 1
 						if GeneralBool then
 							Bot:SET_CONTROL_TEXT(WavesLabel, WavesReplayed.." waves replayed; "..WavesCleared.." waves cleared.")
@@ -426,6 +455,7 @@ function loop()
 					end
 					Bot:WAIT(1000)
 				elseif Events[randEvent] == RunWaveEvent then
+					Bot:SET_STATUS_MSG(1, "Running wave...")
 					Bot:PRINT(Bot:GET_GUI_WINDOW(), "Running next wave\n", Bot.CONSOLE)
 					Bot:WAIT_CLICK_IMAGE_WITH_TIMEOUT("battle_btn.bmp", 2) --START BATTLE
 					WavesCleared = WavesCleared + 1 --TODO Check if victory then add 1
@@ -446,7 +476,8 @@ function loop()
 								end
 								if found then
 									Bot:CLICK_XY(x, y)
-									Bot:PRINT(Bot:GET_GUI_WINDOW(), "Fighting dragon\n", Bot.CONSOLE)
+									Bot:PRINT(Bot:GET_GUI_WINDOW(), "Fighting dragon\n", Bot.CONSOLE)	
+									Bot:SET_STATUS_MSG(1, "Fighting dragon...")
 									DragonsFought = DragonsFought + 1
 								end
 								
@@ -460,12 +491,14 @@ function loop()
 				elseif Events[randEvent] == RunHellEvent then
 					if Bot:WAIT_CLICK_IMAGE_WITH_TIMEOUT("hell_btn.bmp", 2) then
 						if(Bot:WAIT_CLICK_IMAGE_WITH_TIMEOUT("hell_battle.bmp", 5)) then
-							Bot:PRINT(Bot:GET_GUI_WINDOW(), "Enetering hell\n", Bot.CONSOLE)
+							Bot:PRINT(Bot:GET_GUI_WINDOW(), "Enetering hell\n", Bot.CONSOLE)		
+							Bot:SET_STATUS_MSG(1, "Running hell...")
 						end
 					end
 					Bot:WAIT(1000)
 				elseif Events[randEvent] == RunSeasonEvent then
 					Bot:PRINT(Bot:GET_GUI_WINDOW(), "Running season\n", Bot.CONSOLE)
+					Bot:SET_STATUS_MSG(1, "Running season...")
 					Bot:WAIT(1000)
 				end
 			end
@@ -475,10 +508,14 @@ function loop()
 			elseif Bot:FIND_IMAGE("mat2_btn.bmp") then
 				local found, x, y = Bot:FIND_IMAGE_WITH_XY("mat2_btn.bmp", Bot.DEFAULT_TOLERANCE)
 				if found then
+					Bot:SET_STATUS_MSG(1, "Collecting material...")
 					Bot:CLICK_XY(x, y)
 					Bot:CLICK_XY(x, y)
 				end
+			elseif Bot:FIND_IMAGE("victory.bmp") then
+				--Wave completed
 			elseif Bot:FIND_IMAGE("start.bmp") and not Bot:FIND_IMAGE("left_time.bmp") then
+				Bot:SET_STATUS_MSG(1, "Solving diamond...")
 				Bot:START_RECORD()
 				Bot:WAIT(1000) --Wait for recording to start
 				Bot:FIND_CLICK_IMAGE("start.bmp")
@@ -617,11 +654,13 @@ function loop()
 				end
 				
 			else
-
 				--I AM LOST; this code needs work, doesn't always find X button
 				lastRan = 0
 				local xf, xx, xy = Bot:FIND_IMAGE_WITH_XY("x1.bmp", LostTol)
 				repeat
+					if Bot:FIND_IMAGE("replay.bmp") or Bot:FIND_IMAGE("mat2_btn.bmp") then
+						break
+					end
 					LostTol = LostTol + 1
 					xf, xx, xy = Bot:FIND_IMAGE_WITH_XY("x1.bmp", LostTol)
 				until(xf == true or LostTol == 255)
@@ -630,7 +669,9 @@ function loop()
 					Bot:PRINT(Bot:GET_GUI_WINDOW(), "Clicked X\n", Bot.CONSOLE)
 					Bot:WAIT(50)
 				else
-					Bot:PRINT(Bot:GET_GUI_WINDOW(), "I'm Lost!\n", Bot.CONSOLE)
+					if not Bot:FIND_IMAGE("replay.bmp") or Bot:FIND_IMAGE("mat2_btn.bmp") then
+						Bot:PRINT(Bot:GET_GUI_WINDOW(), "I'm Lost!\n", Bot.CONSOLE)
+					end
 				end
 				LostTol = 5
 			end

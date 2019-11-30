@@ -16,16 +16,16 @@ end
 
 function updateCastleText()
 	if CastleTop > 0 then
-		Bot:SET_CONTROL_TEXT(TopCastleLabel, "Top:"..CastleText[CastleTop])
+		Bot:SET_CONTROL_TEXT(TopCastleLabel, "Top:"..CastleText[CastleTop].." - Levels Gained: "..CastleTopLevels)
 	end
 	if CastleMiddle > 0 then
-		Bot:SET_CONTROL_TEXT(MiddleCastleLabel, "Middle:"..CastleText[CastleMiddle])
+		Bot:SET_CONTROL_TEXT(MiddleCastleLabel, "Middle:"..CastleText[CastleMiddle].." - Levels Gained: "..CastleMiddleLevels)
 	end
 	if CastleBottom > 0 then
-		Bot:SET_CONTROL_TEXT(BottomCastleLabel, "Bottom:"..CastleText[CastleBottom])
+		Bot:SET_CONTROL_TEXT(BottomCastleLabel, "Bottom:"..CastleText[CastleBottom].." - Levels Gained: "..CastleBottomLevels)
 	end
 	if CastleBase > 0 then
-		Bot:SET_CONTROL_TEXT(BaseCastleLabel, "Base:"..CastleBaseText[CastleBase])
+		Bot:SET_CONTROL_TEXT(BaseCastleLabel, "Base:"..CastleBaseText[CastleBase].." - Levels Gained: "..CastleBaseLevels)
 	end
 end
 
