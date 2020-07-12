@@ -30,6 +30,7 @@ BlackDragon = 1
 RedDragon = 2
 SinDragon = 3
 LegendDragon = 4
+BoneDragon = 5
 
 
 --Stats
@@ -58,6 +59,7 @@ BlackButton = 0
 RedButton = 0
 SpecialButton = 0
 LegendButton = 0
+BoneButton = 0
 RunWavesButton = 0
 SkipWavesButton = 0
 ReplayWavesButton = 0
@@ -75,6 +77,7 @@ bRedDragon = true
 bBlackDragon = true
 bSpecialDragon = false
 bLegendDragon = false
+bBoneDragon = false
 bSkipWaves = false
 bSpamAbilities = true
 bRunHell = false
@@ -122,6 +125,9 @@ function buildDragonTable()
 	end
 	if bLegendDragon then
 		table.insert(Dragons, LegendDragon)
+	end
+	if bBoneDragon then
+		table.insert(Dragons, BoneDragon)
 	end
 end
 
@@ -224,6 +230,9 @@ function loop()
 		buildDragonTable()
 	elseif NextEvent == LegendButton then
 		bLegendDragon = not bLegendDragon
+		buildDragonTable()
+	elseif NextEvent == BoneButton then
+		bBoneDragon = not bBoneDragon
 		buildDragonTable()
 	elseif NextEvent == ReplayWavesButton then
 		bReplayWaves = not bReplayWaves
@@ -336,6 +345,7 @@ function loop()
 				Bot:FIND_CLICK_IMAGE("start.bmp")
 				Bot:WAIT(1800) --Wait for cups to move
 				Bot:STOP_RECORD()
+				Bot:WAIT(1000) --Wait for recording to stop
 				
 				--Solve
 				OpenCV:OPEN_VIDEO("run1.mp4")
@@ -390,7 +400,7 @@ function loop()
 								dCup["x"] = boxTable[closestBox]["x"]
 								dCup["y"] = boxTable[closestBox]["y"]
 							else
-								MsgBox("Error findind diamond cup")
+								MsgBox("Error finding diamond cup")
 							end
 						else
 							--Track movement of cup
@@ -416,7 +426,7 @@ function loop()
 								dCup["x"] = boxTable[closestBox]["x"]
 								dCup["y"] = boxTable[closestBox]["y"]
 							else
-								MsgBox("Error findind diamond cup")
+								MsgBox("Error finding diamond cup")
 							end
 							
 						end
@@ -471,7 +481,7 @@ function loop()
 				if xf then
 					LostTol = 5
 					Bot:CLICK_XY(xx, xy)
-					Bot:PRINT(Bot:GET_GUI_WINDOW(), "Cicked X\n", Bot.CONSOLE)
+					Bot:PRINT(Bot:GET_GUI_WINDOW(), "Clicked X\n", Bot.CONSOLE)
 					Bot:WAIT(50)
 				else
 					LostTol = LostTol + 1
