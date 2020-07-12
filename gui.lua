@@ -3,36 +3,11 @@ function drawGeneral()
 	DragonLabel = Bot:CREATE_CONTROL(Control.LABEL, 0, 46, 450, 20, "BLANK")
 	GoldLabel = Bot:CREATE_CONTROL_FIXED_ID(1, Control.LABEL, 0, 69, 450, 20, "BLANK")
 	CupsLabel = Bot:CREATE_CONTROL(Control.LABEL, 0, 92, 450, 20, "BLANK")
-	ScreenBtn = Bot:CREATE_CONTROL(Control.BUTTON, 0, 115, 450, 20, "Take Screenshot")
-end
-
-function drawCastle()
-	TopCastleLabel = Bot:CREATE_CONTROL(Control.LABEL, 0, 23, 450, 20, "Top")
-	MiddleCastleLabel = Bot:CREATE_CONTROL(Control.LABEL, 0, 46, 450, 20, "Middle")
-	BottomCastleLabel = Bot:CREATE_CONTROL(Control.LABEL, 0, 69, 450, 20, "Bottom")
-	BaseCastleLabel = Bot:CREATE_CONTROL(Control.LABEL, 0, 92, 450, 20, "Base")
-	ScanCastleBtn = Bot:CREATE_CONTROL(Control.BUTTON, 0, 115, 450, 20, "Scan Castle")
-end
-
-function updateCastleText()
-	if CastleTop > 0 then
-		Bot:SET_CONTROL_TEXT(TopCastleLabel, "Top:"..CastleText[CastleTop].." - Levels Gained: "..CastleTopLevels)
-	end
-	if CastleMiddle > 0 then
-		Bot:SET_CONTROL_TEXT(MiddleCastleLabel, "Middle:"..CastleText[CastleMiddle].." - Levels Gained: "..CastleMiddleLevels)
-	end
-	if CastleBottom > 0 then
-		Bot:SET_CONTROL_TEXT(BottomCastleLabel, "Bottom:"..CastleText[CastleBottom].." - Levels Gained: "..CastleBottomLevels)
-	end
-	if CastleBase > 0 then
-		Bot:SET_CONTROL_TEXT(BaseCastleLabel, "Base:"..CastleBaseText[CastleBase].." - Levels Gained: "..CastleBaseLevels)
-	end
 end
 
 function drawMenu()
 	GeneralButton = Bot:CREATE_CONTROL(Control.RADIO_BUTTON, 0, 0, 100, 20, "General")
-	ConfigButton = Bot:CREATE_CONTROL(Control.RADIO_BUTTON, 105, 0, 100, 20, "Config")
-	CastleButton = Bot:CREATE_CONTROL(Control.RADIO_BUTTON, 210, 0, 100, 20, "Castle")
+	ConfigButton = Bot:CREATE_CONTROL(Control.RADIO_BUTTON, 110, 0, 100, 20, "Config")
 end
 
 function drawConfig()
@@ -55,7 +30,6 @@ end
 function updateToggles()
 	Bot:TOGGLE_CONTROL(GeneralButton, GeneralBool)
 	Bot:TOGGLE_CONTROL(ConfigButton, ConfigBool)
-	Bot:TOGGLE_CONTROL(CastleButton, CastleBool)
 	if ConfigBool then
 		Bot:TOGGLE_CONTROL(RunWavesButton, bRunWaves)
 		Bot:TOGGLE_CONTROL(DragonsButton, bRunDragons)
